@@ -1,0 +1,29 @@
+name: build-vekerman
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.12'
+      - name: Unpack project
+        run: |
+          if [ ! -f vekerman-src.zip ]; then echo "vekerman-src.zip not found in repo root"; ls -la; exit 1; fi
+          unzip -q -o vekerman-src.zip -d proj
+          ls -la proj
+      - name: Build
+        working-directory: proj
+        run: gradle build --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vekerman-jar
+          path: proj/build/libs/*.jar
+          if-no-files-found: error
